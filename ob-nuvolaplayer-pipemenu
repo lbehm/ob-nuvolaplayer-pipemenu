@@ -1,0 +1,74 @@
+#!/bin/bash
+# Pipemenu for Nuvola Player in Openbox
+# Author: Ludwig Behm
+# License: whatever-license
+
+# Usage:
+# Move this file to:
+#	/usr/bin/ob-nuvolaplayer-pipemenu
+# Place the following line in your menu.xml
+# 	<menu execute="ob-nuvolaplayer-pipemenu" id="pipe-nuvolaplayer" label="Nuvola Player"/>
+
+print_entry (){
+	echo "	<item label=\"$1\">"
+	echo "		<action name=\"Execute\"><execute>$2</execute></action>"
+	echo "	</item>"
+}
+print_seperator (){
+	if [ "x$1" != 'x' ]; then
+		echo "	<separator label=\"$1\"/>"
+	else
+		echo "	<separator/>"
+	fi
+}
+#print heading
+echo "<?xml version=\"1.0\" encoding=\"utf-8\"?>
+<openbox_pipe_menu>"
+
+client='nuvolaplayer-client'
+
+#check if nuvolaplayer is running
+status=`${client} status 2>/dev/null |grep Status:|sed -e 's-Status: --'`
+
+case $status in
+	"(null)")
+		#client isn't startet
+		print_entry "Nuvola starten" "nuvolaplayer"
+		;;
+	"Stopped")
+		#music is stopped
+		print_entry "Öffnen" "${client} raise"
+		;;
+	"Playing")
+		#music is playing
+		#get song and artist info from status
+		song=`${client} status 2>/dev/null |grep Song:|sed -e 's-Song: --'`
+		artist=`${client} status 2>/dev/null |grep Artist:|sed -e 's-Artist: --'`
+		
+		print_seperator "$artist"
+		print_seperator "$song"
+		print_seperator
+		print_entry "Pause" "${client} toggle"
+		print_entry "Nächster Titel" "${client} next"
+		print_entry "Vorheriger Titel" "${client} prev"
+		print_seperator
+		print_entry "Öffnen" "${client} raise"
+		;;
+	"Paused")
+		#music is paused
+		#get song and artist info from status
+		song=`${client} status 2>/dev/null |grep Song:|sed -e 's-Song: --'`
+		artist=`${client} status 2>/dev/null |grep Artist:|sed -e 's-Artist: --'`
+		
+		print_seperator "$artist"
+		print_seperator "$song"
+		print_seperator
+		print_entry "Play" "${client} toggle"
+		print_entry "Nächster Titel" "${client} next"
+		print_seperator
+		print_entry "Nuvola öffnen" "${client} raise"
+		;;
+	*)
+		;;
+esac
+echo "</openbox_pipe_menu>"
